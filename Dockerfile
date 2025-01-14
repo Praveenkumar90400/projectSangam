@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     zip \
     curl \
+    libzip-dev \
+    && docker-php-ext-configure zip \
     && docker-php-ext-install zip pdo pdo_mysql \
     && docker-php-ext-enable zip
 
