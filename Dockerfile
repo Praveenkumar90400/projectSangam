@@ -2,7 +2,7 @@
 FROM php:8.1-apache 
 
 # Set working directory
-WORKDIR /app
+WORKDIR /var/www/html
 
 # Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -18,18 +18,15 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copy composer files first to utilize caching
-COPY composer.json composer.lock ./
+# Copy the entire application code first
+COPY . .
+
+# Ensure permissions for Laravel
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Install PHP dependencies
 RUN composer install --no-interaction --no-ansi --no-progress --prefer-dist
-
-# Copy the rest of the application code
-COPY . .
-
-# Set permissions for web server
-RUN chown -R www-data:www-data /app \
-    && chmod -R 775 /app/storage /app/bootstrap/cache
 
 # Expose port 80
 EXPOSE 80
