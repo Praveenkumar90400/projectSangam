@@ -4,18 +4,30 @@ FROM php:8.1-apache
 # Set working directory
 WORKDIR /app
 
-# Copy composer.json and composer.lock
+# Install system dependencies and PHP extensions
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    zip \
+    curl \
+    && docker-php-ext-install zip pdo pdo_mysql \
+    && docker-php-ext-enable zip
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Copy composer files first to utilize caching
 COPY composer.json composer.lock ./
 
-
-RUN apt-get update && apt-get install -y curl && \
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Install dependencies
-RUN composer install --no-interaction --no-ansi --no-progress
+# Install PHP dependencies
+RUN composer install --no-interaction --no-ansi --no-progress --prefer-dist
 
 # Copy the rest of the application code
 COPY . .
+
+# Set permissions for web server
+RUN chown -R www-data:www-data /app \
+    && chmod -R 775 /app/storage /app/bootstrap/cache
 
 # Expose port 80
 EXPOSE 80
