@@ -20,6 +20,8 @@ RUN chown -R www-data:www-data /var/www/html \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+RUN which composer
+
 # Install PHP dependencies (assuming the project uses Composer)
 RUN composer install --no-dev --optimize-autoloader
 
