@@ -19,7 +19,6 @@ spec:
         image: praveenkumar90400/sangamdashboard:latest
         ports:
         - containerPort: 80
----
 apiVersion: v1
 kind: Service
 metadata:
