@@ -17,11 +17,9 @@ spec:
       containers:
       - name: sangamdashboard-container
         image: praveenkumar90400/sangamdashboard:latest
-         securityContext:
-          runAsUser: 1000 
-          runAsGroup: 1000 
         ports:
         - containerPort: 80
+
 apiVersion: v1
 kind: Service
 metadata:
