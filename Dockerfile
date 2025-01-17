@@ -29,7 +29,7 @@ RUN chown -R www-data:www-data /var/www/html \
 RUN composer install --no-interaction --no-ansi --no-progress --prefer-dist
 
 # Expose port 80
-EXPOSE 80
+EXPOSE 8080
 
 # Start Apache server
 CMD ["apache2-foreground"]
