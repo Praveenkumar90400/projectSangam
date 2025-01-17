@@ -18,7 +18,7 @@ spec:
       - name: sangamdashboard-container
         image: praveenkumar90400/sangamdashboard:latest
         ports:
-        - containerPort: 80
+        - containerPort: 8080
 
 apiVersion: v1
 kind: Service
@@ -29,6 +29,6 @@ spec:
     app: sangamdashboard
   ports:
   - protocol: TCP
-    port: 80
-    targetPort: 80
+    port: 8080
+    targetPort: 8080
   type: LoadBalancer
