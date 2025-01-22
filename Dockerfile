@@ -33,9 +33,7 @@ RUN echo "<Directory \"/var/www/html\">\n\tOptions Indexes FollowSymLinks\n\tAll
 EXPOSE 80
 
 # Define a DocumentRoot for Apache
-<VirtualHost *:80>
-    DocumentRoot "/var/www/html/public" 
-</VirtualHost>
+COPY apache2.conf /etc/apache2/sites-available/default.conf
 
 # Start Apache server
 CMD ["apache2-foreground"]
