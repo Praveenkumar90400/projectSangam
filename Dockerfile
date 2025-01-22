@@ -21,7 +21,7 @@ WORKDIR /var/www/html
 COPY . .
 
 # Set the correct permissions and ownership
-RUN chmod -R 755 /var/www/html && chown -R www-data:www-data /var/www/html
+RUN chmod -R 777 /var/www/html && chown -R www-data:www-data /var/www/html
 
 # Set the ServerName directive
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
