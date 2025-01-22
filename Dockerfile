@@ -32,5 +32,10 @@ RUN echo "<Directory \"/var/www/html\">\n\tOptions Indexes FollowSymLinks\n\tAll
 # Expose port 80
 EXPOSE 80
 
+# Define a DocumentRoot for Apache
+<VirtualHost *:80>
+    DocumentRoot "/var/www/html/public" 
+</VirtualHost>
+
 # Start Apache server
 CMD ["apache2-foreground"]
