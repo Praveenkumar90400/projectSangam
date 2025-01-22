@@ -14,6 +14,9 @@ RUN apt-get update && \
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
+# Add the application
+ADD . /app
+
 # Set the working directory
 WORKDIR /var/www/html
 
