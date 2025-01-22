@@ -1,32 +1,39 @@
-FROM php:7-apache
+# Use an official PHP image as the base
+FROM php:8.1-apache
 
-MAINTAINER Samuel ROZE <samuel.roze@gmail.com>
+# Install required PHP extensions and other dependencies
+RUN apt-get update && \
+    apt-get install -y \
+        libpng-dev \
+        libjpeg-dev \
+        libfreetype6-dev \
+        zip \
+        unzip \
+    && docker-php-ext-install pdo pdo_mysql
 
-# PHP extension
-RUN requirements="zlib1g-dev libicu-dev git curl" \
-    && apt-get update && apt-get install -y $requirements && rm -rf /var/lib/apt/lists/* \
-    && docker-php-ext-install pdo_mysql \
-    && docker-php-ext-install intl \
-    && docker-php-ext-install zip \
-    && apt-get purge --auto-remove -y
-
-# Apache & PHP configuration
+# Enable Apache mod_rewrite
 RUN a2enmod rewrite
-ADD docker/apache/vhost.conf /etc/apache2/sites-enabled/000-default.conf
-ADD docker/php/php.ini /usr/local/etc/php/php.ini
 
-# Install composer
-RUN curl -sS https://getcomposer.org/installer | php \
-    && mv composer.phar /usr/bin/composer
+# Set the working directory
+WORKDIR /var/www/html
 
-# Add the application
-ADD . /app
-WORKDIR /app
+# Copy the application files
+COPY . .
 
-# Install dependencies
-RUN composer install -o
+# Set the correct permissions and ownership
+RUN chmod -R 755 /var/www/html && chown -R www-data:www-data /var/www/html
 
-# Ensure that the production container will run with the www-data user
-RUN chown www-data /app
+# Set the ServerName directive
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-CMD ["/app/docker/apache/run.sh"]
+# Update Apache configuration to allow access and set DirectoryIndex
+RUN echo "<Directory \"/var/www/html\">\n\tOptions Indexes FollowSymLinks\n\tAllowOverride None\n\tRequire all granted\n\tDirectoryIndex index.php index.html\n</Directory>" >> /etc/apache2/apache2.conf
+
+# Define a DocumentRoot for Apache
+COPY apache2.conf /etc/apache2/sites-available/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache server
+CMD ["apache2-foreground"]
