@@ -36,3 +36,4 @@ COPY apache2.conf /etc/apache2/sites-available/default.conf
 EXPOSE 80
 
 # Start Apache server
+CMD ["apache2-foreground"]
