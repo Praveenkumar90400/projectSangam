@@ -33,7 +33,7 @@ RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache && \
 # Configure Apache
 RUN echo "<VirtualHost *:80>\n\
     DocumentRoot /var/www/public\n\
-    <Directory /var/www/public>\n\
+    <Directory /var/www>\n\
         Options Indexes FollowSymLinks\n\
         AllowOverride All\n\
         Require all granted\n\
