@@ -7,6 +7,9 @@ WORKDIR /var/www
 # Copy application files to the container
 COPY . /var/www
 
+# Ensure public directory exists
+RUN mkdir -p /var/www/public
+
 # Update the package list and install dependencies
 RUN apt-get update && \
     apt-get install -y \
@@ -33,7 +36,7 @@ RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache && \
 # Configure Apache
 RUN echo "<VirtualHost *:80>\n\
     DocumentRoot /var/www/public\n\
-    <Directory /var/www>\n\
+    <Directory /var/www/public>\n\
         Options Indexes FollowSymLinks\n\
         AllowOverride All\n\
         Require all granted\n\
