@@ -20,8 +20,14 @@ ADD . /app
 # Set the working directory
 WORKDIR /var/www/html/public
 
+# Copy composer.json and composer.lock to the working directory
+COPY composer.json composer.lock ./
+
 # Copy the application files
 COPY . .
+
+# Install project dependencies
+RUN composer install --no-interaction:
 
 # Set the correct permissions and ownership
 RUN chmod -R 755 /var/www/html && chown -R www-data:www-data /var/www/html
@@ -37,8 +43,14 @@ RUN echo "<Directory \"/var/www/html\">\n\tOptions Indexes FollowSymLinks\n\tAll
 COPY apache2.conf /etc/apache2/sites-available/default.conf
 RUN a2ensite default 
 
+# Define environment variables (optional)
+ENV APP_ENV=production
+ENV APP_DEBUG=false
+
 # Expose port 80
 EXPOSE 80
 
 # Start Apache server
 CMD ["apache2-foreground"]
+# Start the PHP-FPM service
+CMD ["php-fpm"]
