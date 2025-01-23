@@ -18,7 +18,7 @@ RUN a2enmod rewrite
 ADD . /app
 
 # Set the working directory
-WORKDIR /var/www/html
+WORKDIR /var/www/html/public
 
 # Copy the application files
 COPY . .
