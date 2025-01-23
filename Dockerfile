@@ -1,13 +1,13 @@
 # Use an official PHP image as the base
 FROM php:8.1-apache
 
-# Set the working directory to Laravel's root
+# Set the working directory
 WORKDIR /var/www
 
-# Copy all files to the container (for Composer installation)
+# Copy application files to the container
 COPY . /var/www
 
-# Install required PHP extensions and other dependencies
+# Update the package list and install dependencies
 RUN apt-get update && \
     apt-get install -y \
         libpng-dev \
@@ -16,18 +16,21 @@ RUN apt-get update && \
         zip \
         unzip \
         curl \
-        git
+        git && \
+    docker-php-ext-install pdo pdo_mysql && \
+    apt-get clean
 
 # Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install PHP extensions for Laravel
-RUN docker-php-ext-install pdo pdo_mysql
-
 # Install Laravel dependencies
-RUN composer install --no-interaction --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader
 
-# Set the web server's document root to Laravel's public directory
+# Set the permissions for storage and bootstrap/cache
+RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache && \
+    chown -R www-data:www-data /var/www
+
+# Configure Apache
 RUN echo "<VirtualHost *:80>\n\
     DocumentRoot /var/www/public\n\
     <Directory /var/www/public>\n\
@@ -37,14 +40,14 @@ RUN echo "<VirtualHost *:80>\n\
     </Directory>\n\
 </VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
-# Enable Apache mod_rewrite
+# Enable mod_rewrite
 RUN a2enmod rewrite
-
-# Set permissions for Laravel
-RUN chmod -R 755 /var/www && chown -R www-data:www-data /var/www
 
 # Expose port 80
 EXPOSE 80
 
-# Start Apache
+# Clear Laravel configuration cache
+RUN php artisan config:clear
+
+# Set the entrypoint
 CMD ["apache2-foreground"]
