@@ -40,17 +40,15 @@ RUN mkdir /etc/apache2/ssl && \
     -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=localhost"
 
 # Update Apache configuration to enable HTTPS
-RUN echo "<VirtualHost *:443>\n\
+RUN echo "<VirtualHost *:80>\n\
     DocumentRoot /var/www/html/public\n\
     <Directory /var/www/html/public>\n\
         Options Indexes FollowSymLinks\n\
         AllowOverride All\n\
         Require all granted\n\
     </Directory>\n\
-    SSLEngine on\n\
-    SSLCertificateFile /etc/apache2/ssl/apache-selfsigned.crt\n\
-    SSLCertificateKeyFile /etc/apache2/ssl/apache-selfsigned.key\n\
-</VirtualHost>" > /etc/apache2/sites-available/default-ssl.conf && \
+</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
+
     a2enmod ssl && \
     a2ensite default-ssl
 
