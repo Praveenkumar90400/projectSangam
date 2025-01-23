@@ -13,21 +13,18 @@ RUN apt-get update && \
         zip \
         unzip \
         curl \
-        git && \
-        
+        git
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-RUN  docker-php-ext-install pdo pdo_mysql
-
-
-# COPY . /public/ /var/www/html
-
-
+RUN docker-php-ext-install pdo pdo_mysql
 
 # Ensure public directory exists
 RUN mkdir -p /var/www/html/public
+
+# Copy the application files
+COPY . .
 
 # Install project dependencies
 RUN composer install --no-interaction
@@ -50,9 +47,6 @@ RUN echo "<VirtualHost *:80>\n\
 
 # Set the ServerName directive (optional)
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
-# Copy the application files
-COPY . .
 
 # Expose port 80
 EXPOSE 80
