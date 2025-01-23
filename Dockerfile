@@ -19,8 +19,6 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-ADD ./app /var/www/html
-
 # Set the working directory
 WORKDIR /var/www/html
 
@@ -40,7 +38,7 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 RUN echo "<Directory \"/var/www/html\">\n\tOptions Indexes FollowSymLinks\n\tAllowOverride All\n\tRequire all granted\n\tDirectoryIndex index.php index.html\n</Directory>" >> /etc/apache2/apache2.conf
 
 # Define a DocumentRoot for Apache
-COPY ./app/my-site.conf /etc/apache2/sites-available/my-site.conf
+COPY apache2.conf /etc/apache2/sites-available/default.conf
 RUN a2ensite default 
 
 # Define environment variables (optional)
@@ -49,7 +47,6 @@ ENV APP_DEBUG=false
 
 # Expose port 80
 EXPOSE 80
-EXPOSE 443
 
 # Start Apache server
 CMD ["apache2-foreground"]
