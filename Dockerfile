@@ -19,20 +19,17 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Add the application
-ADD . /app
-
 # Set the working directory
 WORKDIR /var/www/html
 
 # Copy composer.json and composer.lock to the working directory
 COPY composer.json composer.lock ./
 
-# Copy the application files
-COPY . .
-
 # Install project dependencies
 RUN composer install --no-interaction
+
+# Copy the application files
+COPY . .
 
 # Set the correct permissions and ownership
 RUN chmod -R 755 /var/www/html && chown -R www-data:www-data /var/www/html
@@ -41,7 +38,7 @@ RUN chmod -R 755 /var/www/html && chown -R www-data:www-data /var/www/html
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Update Apache configuration to allow access and set DirectoryIndex
-RUN echo "<Directory \"/var/www/html\">\n\tOptions Indexes FollowSymLinks\n\tAllowOverride None\n\tRequire all granted\n\tDirectoryIndex index.php index.html\n</Directory>" >> /etc/apache2/apache2.conf
+RUN echo "<Directory \"/var/www/html\">\n\tOptions Indexes FollowSymLinks\n\tAllowOverride All\n\tRequire all granted\n\tDirectoryIndex index.php index.html\n</Directory>" >> /etc/apache2/apache2.conf
 
 # Define a DocumentRoot for Apache
 COPY apache2.conf /etc/apache2/sites-available/default.conf
