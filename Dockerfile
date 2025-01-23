@@ -1,6 +1,9 @@
 # Use an official PHP image as the base
 FROM php:8.1-apache
 
+# Set the working directory
+WORKDIR /var/www/html
+
 # Install required PHP extensions and other dependencies
 RUN apt-get update && \
     apt-get install -y \
@@ -17,13 +20,11 @@ RUN apt-get update && \
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 RUN  docker-php-ext-install pdo pdo_mysql
-# Set the working directory
-WORKDIR /var/www/html
 
-COPY . /public/ /var/www/html
 
-# Copy the application files
-COPY . .
+# COPY . /public/ /var/www/html
+
+
 
 # Ensure public directory exists
 RUN mkdir -p /var/www/html/public
@@ -49,6 +50,9 @@ RUN echo "<VirtualHost *:80>\n\
 
 # Set the ServerName directive (optional)
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+# Copy the application files
+COPY . .
 
 # Expose port 80
 EXPOSE 80
