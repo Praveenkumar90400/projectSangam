@@ -23,7 +23,7 @@ RUN a2enmod rewrite
 ADD . /app
 
 # Set the working directory
-WORKDIR /var/www/html/public
+WORKDIR /var/www/html
 
 # Copy composer.json and composer.lock to the working directory
 COPY composer.json composer.lock ./
