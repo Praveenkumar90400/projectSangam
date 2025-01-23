@@ -4,6 +4,9 @@ FROM php:8.1-apache
 # Set the working directory
 WORKDIR /var/www/html
 
+#copy the current directory contents into the container at /var/www/html
+COPY . /var/www/html
+
 # Install required PHP extensions and other dependencies
 RUN apt-get update && \
     apt-get install -y \
@@ -17,24 +20,13 @@ RUN apt-get update && \
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
 RUN docker-php-ext-install pdo pdo_mysql
-
-# Ensure public directory exists
-RUN mkdir -p /var/www/html/public
-
-# Copy the application files
-COPY . .
-
 # Install project dependencies
 RUN composer install --no-interaction
-
 # Set the correct permissions and ownership
 RUN chmod -R 755 /var/www/html && chown -R www-data:www-data /var/www/html
-
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
-
 # Update Apache configuration to enable proper access
 RUN echo "<VirtualHost *:80>\n\
     DocumentRoot /var/www/html/public\n\
@@ -44,7 +36,6 @@ RUN echo "<VirtualHost *:80>\n\
         Require all granted\n\
     </Directory>\n\
 </VirtualHost>" > /etc/apache2/sites-available/000-default.conf
-
 # Set the ServerName directive (optional)
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
