@@ -20,7 +20,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Set the working directory
 WORKDIR /var/www/html
 
-copy public/ /var/www/html
+COPY public/ /var/www/html
 
 # Copy the application files
 COPY . .
