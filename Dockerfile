@@ -22,6 +22,9 @@ WORKDIR /var/www/html
 # Copy the application files
 COPY . .
 
+# Ensure public directory exists
+RUN mkdir -p /var/www/html/public
+
 # Install project dependencies
 RUN composer install --no-interaction
 
