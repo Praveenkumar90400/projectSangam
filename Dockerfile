@@ -16,6 +16,9 @@ RUN apt-get update && \
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+# Install project dependencies
+RUN composer install --no-interaction
+
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
@@ -24,9 +27,6 @@ WORKDIR /var/www/html
 
 # Copy the application files
 COPY . .
-
-# Install project dependencies
-RUN composer install --no-interaction
 
 # Set the correct permissions and ownership
 RUN chmod -R 755 /var/www/html && chown -R www-data:www-data /var/www/html
