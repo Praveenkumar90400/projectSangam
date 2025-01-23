@@ -10,17 +10,11 @@ RUN apt-get update && \
         zip \
         unzip \
         curl \
-        git \
-    && docker-php-ext-install pdo pdo_mysql
+        git && \
+    docker-php-ext-install pdo pdo_mysql
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Install project dependencies
-RUN composer install --no-interaction
-
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
 
 # Set the working directory
 WORKDIR /var/www/html
@@ -28,22 +22,27 @@ WORKDIR /var/www/html
 # Copy the application files
 COPY . .
 
+# Install project dependencies
+RUN composer install --no-interaction
+
 # Set the correct permissions and ownership
 RUN chmod -R 755 /var/www/html && chown -R www-data:www-data /var/www/html
 
-# Set the ServerName directive
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
+
+# Update Apache configuration to enable proper access
+RUN echo "<VirtualHost *:80>\n\
+    DocumentRoot /var/www/html/public\n\
+    <Directory /var/www/html/public>\n\
+        Options Indexes FollowSymLinks\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
+
+# Set the ServerName directive (optional)
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
-# Update Apache configuration to allow access and set DirectoryIndex
-RUN echo "<Directory \"/var/www/html\">\n\tOptions Indexes FollowSymLinks\n\tAllowOverride All\n\tRequire all granted\n\tDirectoryIndex index.php index.html\n</Directory>" >> /etc/apache2/apache2.conf
-
-# Define a DocumentRoot for Apache
-COPY apache2.conf /etc/apache2/sites-available/default.conf
-RUN a2ensite default 
-
-# Define environment variables (optional)
-ENV APP_ENV=production
-ENV APP_DEBUG=false
 
 # Expose port 80
 EXPOSE 80
