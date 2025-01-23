@@ -1,9 +1,12 @@
 # Use an official PHP image as the base
 FROM php:8.1-apache
+
+# Set the working directory
+WORKDIR /var/www/html
+
 # Copy the current directory contents into the container at /var/www/html
 COPY . /var/www/html
-# Set the working directory
-WORKDIR /var/www/html/public
+
 # Ensure public directory exists
 RUN mkdir -p /var/www/html/public
 
@@ -23,7 +26,8 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 RUN docker-php-ext-install pdo pdo_mysql
 
-# Install project dependencies
+# Install project dependencies from the root directory
+WORKDIR /var/www/html
 RUN composer install --no-interaction
 
 # Set the correct permissions and ownership
