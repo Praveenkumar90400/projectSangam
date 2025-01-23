@@ -10,7 +10,8 @@ RUN apt-get update && \
         zip \
         unzip \
         curl \
-        git && \
+        git \
+        openssl && \
     docker-php-ext-install pdo pdo_mysql
 
 # Install Composer
@@ -31,21 +32,33 @@ RUN chmod -R 755 /var/www/html && chown -R www-data:www-data /var/www/html
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Update Apache configuration to enable proper access
-RUN echo "<VirtualHost *:80>\n\
+# Generate a self-signed SSL certificate (for testing purposes)
+RUN mkdir /etc/apache2/ssl && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/apache2/ssl/apache-selfsigned.key \
+    -out /etc/apache2/ssl/apache-selfsigned.crt \
+    -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=localhost"
+
+# Update Apache configuration to enable HTTPS
+RUN echo "<VirtualHost *:443>\n\
     DocumentRoot /var/www/html/public\n\
     <Directory /var/www/html/public>\n\
         Options Indexes FollowSymLinks\n\
         AllowOverride All\n\
         Require all granted\n\
     </Directory>\n\
-</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
+    SSLEngine on\n\
+    SSLCertificateFile /etc/apache2/ssl/apache-selfsigned.crt\n\
+    SSLCertificateKeyFile /etc/apache2/ssl/apache-selfsigned.key\n\
+</VirtualHost>" > /etc/apache2/sites-available/default-ssl.conf && \
+    a2enmod ssl && \
+    a2ensite default-ssl
 
 # Set the ServerName directive (optional)
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Expose port 80
-EXPOSE 80
+# Expose ports 80 and 443
+EXPOSE 80 443
 
 # Start Apache server
 CMD ["apache2-foreground"]
