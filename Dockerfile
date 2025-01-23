@@ -22,14 +22,11 @@ RUN a2enmod rewrite
 # Set the working directory
 WORKDIR /var/www/html
 
-# Copy composer.json and composer.lock to the working directory
-COPY composer.json composer.lock ./
+# Copy the application files
+COPY . .
 
 # Install project dependencies
 RUN composer install --no-interaction
-
-# Copy the application files
-COPY . .
 
 # Set the correct permissions and ownership
 RUN chmod -R 755 /var/www/html && chown -R www-data:www-data /var/www/html
