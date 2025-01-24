@@ -1,3 +1,4 @@
+# Use an official PHP image as the base
 FROM php:8.1-fpm
 
 # Install necessary packages
@@ -14,8 +15,12 @@ RUN apt-get update && \
         libjpeg62-turbo-dev \
         libmcrypt-dev \
         libicu-dev \
+        curl \
         git \
     && docker-php-ext-install pdo pdo_mysql mysqli zip gd
+
+# Install Composer globally
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Copy application files
 COPY . /var/www/html
