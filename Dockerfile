@@ -29,6 +29,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Install Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+# Debug: List contents of public directory to verify if index.php exists
+RUN ls -al /var/www/public
+
 # Set the permissions for storage and bootstrap/cache
 RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache && \
     chown -R www-data:www-data /var/www
