@@ -1,35 +1,36 @@
 # Use an official PHP image as the base
-FROM php:8.1-fpm
+FROM php:8.1-apache
 
-# Install necessary packages
+# Set the working directory
+WORKDIR /var/www
+
+# Copy application files to the container
+COPY . /var/www
+
+# Ensure public directory exists
+RUN mkdir -p /var/www/public
+
+# Update the package list and install dependencies
 RUN apt-get update && \
     apt-get install -y \
-        unzip \
-        libzip-dev \
-        zlib1g-dev \
         libpng-dev \
         libjpeg-dev \
-        libgd-dev \
-        libwebp-dev \
-        libxpm-dev \
-        libjpeg62-turbo-dev \
-        libmcrypt-dev \
-        libicu-dev \
+        libfreetype6-dev \
+        zip \
+        unzip \
         curl \
-        git \
-    && docker-php-ext-install pdo pdo_mysql mysqli zip gd
+        git && \
+    docker-php-ext-install pdo pdo_mysql && \
+    apt-get clean
 
 # Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copy application files
-COPY . /var/www/html
+# Install Laravel dependencies
+RUN composer install --no-dev --optimize-autoloader
 
-# Set working directory
-WORKDIR /var/www/html
-
-# Install project dependencies
-RUN composer install --no-interaction
+# Debug: List contents of public directory to verify if index.php exists
+RUN ls -al /var/www/public
 
 # Set environment variables directly
 ENV DB_HOST="my-db-server" \
@@ -37,10 +38,29 @@ ENV DB_HOST="my-db-server" \
     DB_USERNAME="root" \
     DB_PASSWORD="root"
 
-# Replace placeholders with your actual values above
+# Set the permissions for storage and bootstrap/cache
+RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache && \
+    chown -R www-data:www-data /var/www
 
-# Expose port
-EXPOSE 9000
+# Configure Apache
+RUN echo "<VirtualHost *:80>\n\
+    DocumentRoot /var/www/public\n\
+    <Directory /var/www/public>\n\
+        Options Indexes FollowSymLinks\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
-# Start PHP-FPM
-CMD ["php-fpm"]
+# Enable mod_rewrite
+RUN a2enmod rewrite
+
+# Expose port 80
+EXPOSE 80
+
+# Clear Laravel configuration cache
+RUN php artisan config:clear
+
+# Set the entrypoint
+CMD ["apache2-foreground"]
+
