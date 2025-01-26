@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone the application code from the Git repository
-RUN git clone https://github.com/Praveenkumar90400/projectSangam.git /var/www/html
+RUN git clone --force https://github.com/Praveenkumar90400/projectSangam.git /var/www/html
 
 # Set permissions for Laravel storage and cache
 RUN chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
