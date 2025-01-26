@@ -19,8 +19,11 @@ RUN apt-get update && apt-get install -y \
     libapache2-mod-php \
     && rm -rf /var/lib/apt/lists/*
 
+# Ensure the target directory is clean before cloning
+RUN rm -rf /var/www/html/*
+
 # Clone the application code from the Git repository
-RUN git clone --force https://github.com/Praveenkumar90400/projectSangam.git /var/www/html
+RUN git clone https://github.com/Praveenkumar90400/projectSangam.git /var/www/html
 
 # Set permissions for Laravel storage and cache
 RUN chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache
@@ -30,11 +33,13 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 # Install Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader
+
 # Set environment variables directly
 ENV DB_HOST="my-db-server" \
     DB_DATABASE="Mysql" \
     DB_USERNAME="root" \
     DB_PASSWORD="root"
+
 # Enable Apache mod_rewrite for Laravel
 RUN a2enmod rewrite
 
@@ -50,7 +55,9 @@ RUN echo "<VirtualHost *:80>\n\
 
 # Expose port 80
 EXPOSE 80
+
 # Clear Laravel configuration cache
 RUN php artisan config:clear
+
 # Start Apache server
 CMD ["apachectl", "-D", "FOREGROUND"]
