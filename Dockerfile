@@ -4,11 +4,15 @@ FROM ubuntu:latest
 # Set the working directory
 WORKDIR /app
 
-# Update package list and install required packages (including Git and PHP dependencies)
+# Update package list and install required packages (including Git, PHP, and dependencies)
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     php-cli \
+    php-xml \
+    php-mbstring \
+    php-bcmath \
+    php-curl \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
