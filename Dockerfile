@@ -4,23 +4,20 @@ FROM php:8.1-apache
 # Set the working directory
 WORKDIR /var/www/html
 
-# Update package list and install required packages (including PHP and Apache)
+# Update package list and install required packages (including PHP extensions)
 RUN apt-get update && apt-get install -y \
     git \
     curl \
-    php-cli \
-    php-xml \
-    php-mbstring \
-    php-bcmath \
-    php-curl \
-    php-zip \
     unzip \
     apache2 \
     libapache2-mod-php \
+    && docker-php-ext-install \
+    bcmath \
+    curl \
+    mbstring \
+    xml \
+    zip \
     && rm -rf /var/lib/apt/lists/*
-
-# Ensure the target directory is clean before cloning
-RUN rm -rf /var/www/html/*
 
 # Clone the application code from the Git repository
 RUN git clone https://github.com/Praveenkumar90400/projectSangam.git /var/www/html
