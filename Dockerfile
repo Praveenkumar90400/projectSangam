@@ -1,3 +1,4 @@
+# Use an official PHP image as the base
 FROM php:8.1-apache
 
 # Set the working directory
@@ -60,5 +61,5 @@ EXPOSE 80
 # Clear Laravel configuration cache (optional, consider during deployment)
 # RUN php artisan config:clear
 
-# Set the entrypoint (consider using php-fpm for better performance)
+# Set the entrypoint
 CMD ["apache2-foreground"]
