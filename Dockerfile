@@ -4,9 +4,6 @@ FROM php:8.2-fpm
 # Set the working directory
 WORKDIR /var/www/html
 
-# Copy composer files
-COPY composer.json composer.lock ./
-
 # Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
         libzip-dev \
@@ -22,14 +19,14 @@ RUN apt-get update && apt-get install -y \
 # Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install Laravel dependencies
-RUN composer install --no-interaction --optimize-autoloader
-
 # Copy the application code
 COPY . .
 
 # Set permissions for Laravel storage and cache
 RUN chmod -R 777 storage bootstrap/cache
+
+# Install Laravel dependencies
+RUN composer install --no-interaction --optimize-autoloader
 
 # Set environment variables
 ENV APP_ENV=production
