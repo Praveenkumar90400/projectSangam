@@ -34,10 +34,15 @@ COPY . /var/www/html
 
 # Set permissions for Laravel's storage and cache directories
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Set the correct Apache DocumentRoot to Laravel's public directory
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
-    && sed -i 's|/var/www/|/var/www/html/public|g' /etc/apache2/apache2.conf
+# Configure Apache
+RUN echo "<VirtualHost *:80>\n\
+    DocumentRoot /var/www/public\n\
+    <Directory /var/www/public>\n\
+        Options Indexes FollowSymLinks\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
 # Expose port 80 for the Apache server
 EXPOSE 80
