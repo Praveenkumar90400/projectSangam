@@ -1,65 +1,44 @@
 # Use an official PHP image as the base
-FROM php:8.1-apache
+FROM php:8.2-fpm
 
 # Set the working directory
-WORKDIR /var/www
+WORKDIR /var/www/html
 
-# Copy application files to the container
-COPY . /var/www
+# Copy composer files
+COPY composer.json composer.lock ./
 
-# Ensure public directory exists
-RUN mkdir -p /var/www/public
-
-# Update the package list and install dependencies
-RUN apt-get update && \
-    apt-get install -y \
-        libpng-dev \
-        libjpeg-dev \
-        libfreetype6-dev \
-        zip \
+# Install system dependencies and PHP extensions
+RUN apt-get update && apt-get install -y \
+        libzip-dev \
         unzip \
+        git \
         curl \
-        git && \
-    docker-php-ext-install pdo pdo_mysql && \
-    apt-get clean
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        zip \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install Laravel dependencies (consider adding --prefer-dist for production)
-RUN composer install --no-dev --optimize-autoloader
+# Install Laravel dependencies
+RUN composer install --no-interaction --optimize-autoloader
 
-# Debug: List contents of public directory to verify if index.php exists
-RUN ls -al /var/www/public
+# Copy the application code
+COPY . .
 
-# Set environment variables directly
-ENV DB_HOST="my-db-server" \
-    DB_DATABASE="Mysql" \
-    DB_USERNAME="root" \
-    DB_PASSWORD="root"
+# Set permissions for Laravel storage and cache
+RUN chmod -R 777 storage bootstrap/cache
 
-# Set the permissions for storage and bootstrap/cache
-RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache && \
-    chown -R www-data:www-data /var/www
+# Set environment variables
+ENV APP_ENV=production
+ENV APP_KEY="base64:key-placeholder"
+ENV APP_DEBUG=false
+ENV APP_URL=http://localhost
 
-# Configure Apache
-RUN echo "<VirtualHost *:80>\n\
-    DocumentRoot /var/www/public\n\
-    <Directory /var/www/public>\n\
-        Options Indexes FollowSymLinks\n\
-        AllowOverride All\n\
-        Require all granted\n\
-    </Directory>\n\
-</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
+# Expose the container port for PHP-FPM
+EXPOSE 9000
 
-# Enable mod_rewrite
-RUN a2enmod rewrite
-
-# Expose port 80
-EXPOSE 80
-
-# Clear Laravel configuration cache (optional, consider during deployment)
-# RUN php artisan config:clear
-
-# Set the entrypoint
-CMD ["apache2-foreground"]
+# Define the command to run the application
+CMD ["php", "artisan", "serve", "--host", "0.0.0.0", "--port", "8000"]
