@@ -1,41 +1,45 @@
-# Use an official PHP image as the base
-FROM php:8.2-fpm
+# Use PHP 8.1 with Apache as the base image
+FROM php:8.1-apache
 
-# Set the working directory
+# Set the working directory to /var/www/html
 WORKDIR /var/www/html
 
-# Install system dependencies and PHP extensions
+# Install system dependencies, PHP extensions, and Composer
 RUN apt-get update && apt-get install -y \
-        libzip-dev \
-        unzip \
-        git \
-        curl \
+    zip \
+    unzip \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
     && docker-php-ext-install \
-        pdo \
-        pdo_mysql \
-        zip \
-    && rm -rf /var/lib/apt/lists/*
+    pdo_mysql \
+    mbstring \
+    tokenizer \
+    xml \
+    zip \
+    gd
 
-# Install Composer globally
+# Enable Apache rewrite module
+RUN a2enmod rewrite
+
+# Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copy the application code
-COPY . .
+# Copy application files to the container
+COPY . /var/www/html
 
-# Set permissions for Laravel storage and cache
-RUN chmod -R 777 storage bootstrap/cache
+# Set permissions for Laravel's storage and cache directories
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Install Laravel dependencies
-RUN composer install --no-interaction --optimize-autoloader
+# Set the correct Apache DocumentRoot to Laravel's public directory
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
+    && sed -i 's|/var/www/|/var/www/html/public|g' /etc/apache2/apache2.conf
 
-# Set environment variables
-ENV APP_ENV=production
-ENV APP_KEY="base64:key-placeholder"
-ENV APP_DEBUG=false
-ENV APP_URL=http://localhost
+# Expose port 80 for the Apache server
+EXPOSE 80
 
-# Expose the container port for PHP-FPM
-EXPOSE 8000
-
-# Define the command to run the application
-CMD ["php", "artisan", "serve", "--host", "0.0.0.0", "--port", "8000"]
+# Start the Apache server
+CMD ["apache2-foreground"]
