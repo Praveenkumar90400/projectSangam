@@ -35,7 +35,7 @@ ENV APP_DEBUG=false
 ENV APP_URL=http://localhost
 
 # Expose the container port for PHP-FPM
-EXPOSE 9000
+EXPOSE 8000
 
 # Define the command to run the application
 CMD ["php", "artisan", "serve", "--host", "0.0.0.0", "--port", "8000"]
