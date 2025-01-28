@@ -3,7 +3,6 @@ FROM php:8.2-apache
 # Install necessary packages, including gd library
 RUN apt-get update && \
     apt-get install -y \
-        php8.1-gd \
          unzip \
         libzip-dev \
         zlib1g-dev \
