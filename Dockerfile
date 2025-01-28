@@ -1,28 +1,33 @@
-FROM php:8.2-apache
+# Use an official PHP image as the base
+FROM php:8.1-apache
 
-# Install necessary packages, including gd library
+# Install required PHP extensions and other dependencies
 RUN apt-get update && \
     apt-get install -y \
-         unzip \
-        libzip-dev \
-        zlib1g-dev \
         libpng-dev \
         libjpeg-dev \
-        libgd-dev \
-        libwebp-dev \
-        libxpm-dev \
-        libjpeg62-turbo-dev \
-        libmcrypt-dev \
-        libicu-dev \
-        git \
-    && docker-php-ext-install pdo pdo_mysql mysqli zip gd
+        libfreetype6-dev \
+        zip \
+        unzip \
+        curl \
+        git && \
         
+ RUN  docker-php-ext-install pdo pdo_mysql       
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+# Set working directory
+WORKDIR /app
+
 # Copy composer files
 COPY composer.json composer.lock ./
+
+# Copy the rest of the project
+COPY . .
+
+# Ensure public directory exists
+RUN mkdir -p /var/www/html/public
 
 # Install project dependencies
 RUN composer install --no-interaction
@@ -30,14 +35,14 @@ RUN composer install --no-interaction
 # Set working directory
 WORKDIR /app
 
-# Copy the rest of the project
-COPY . .
-
 # Set document root for Apache
 WORKDIR /var/www/html
 
 # Set the correct permissions and ownership
 RUN chmod -R 755 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache
+
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
 
 # Update Apache configuration to enable proper access
 RUN echo "<VirtualHost *:80>\n\
@@ -48,9 +53,6 @@ RUN echo "<VirtualHost *:80>\n\
         Require all granted\n\
     </Directory>\n\
 </VirtualHost>" > /etc/apache2/sites-available/000-default.conf
-
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
 
 # Expose port 80
 EXPOSE 80
