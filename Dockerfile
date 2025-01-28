@@ -1,4 +1,12 @@
-# Use an official PHP image with Apache
+# Stage 1: Build (dependencies)
+FROM composer:latest AS builder
+
+WORKDIR /app
+COPY composer.json composer.lock ./
+
+RUN composer install --no-dev --optimize-autoloader
+
+# Stage 2: Runtime (application)
 FROM php:8.2-apache
 
 # Install necessary packages and PHP extensions
@@ -32,16 +40,14 @@ RUN a2enmod rewrite headers
 WORKDIR /var/www/html
 
 # Copy application files to the container
-COPY ./public /var/www/html/public
+COPY --from=builder /app/vendor /var/www/html/vendor
+COPY . /var/www/html
 
 # Install Composer globally
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Fix dubious ownership issue for Git
 RUN git config --global --add safe.directory /var/www/html
-
-# Install project dependencies without dev dependencies for production
-RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Set permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
@@ -58,8 +64,7 @@ RUN echo "<VirtualHost *:80>\n\
     CustomLog \${APACHE_LOG_DIR}/access.log combined\n\
     ServerName localhost\n\
 </VirtualHost>" > /etc/apache2/sites-available/000-default.conf && \
-apache2ctl configtest
-
+    apache2ctl configtest
 
 # Expose port 80
 EXPOSE 80
