@@ -3,10 +3,21 @@ FROM php:8.2-apache
 # Install necessary packages, including gd library
 RUN apt-get update && \
     apt-get install -y \
-        libzip-dev \
-        unzip \
         php8.1-gd \
-        && docker-php-ext-install pdo pdo_mysql zip
+         unzip \
+        libzip-dev \
+        zlib1g-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libgd-dev \
+        libwebp-dev \
+        libxpm-dev \
+        libjpeg62-turbo-dev \
+        libmcrypt-dev \
+        libicu-dev \
+        git \
+    && docker-php-ext-install pdo pdo_mysql mysqli zip gd
+        
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
