@@ -1,32 +1,49 @@
-# Dockerfile
-FROM php:8.1-fpm
+# Use an official PHP image as the base
+FROM php:8.1-apache
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    curl \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+# Install necessary packages
+RUN apt-get update && \
+    apt-get install -y \
+        libzip-dev \
+        unzip \
+        && docker-php-ext-install pdo pdo_mysql zip
 
 # Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Set working directory
-WORKDIR /var/www
+# Copy composer.json and composer.lock
+COPY composer.json composer.lock ./
 
-# Copy application files
-COPY . .
+# Install project dependencies
+RUN composer install --no-interaction
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# Copy the entire project, excluding unnecessary files
+COPY . . \
+    --from=source \
+    --exclude=vendor \
+    --exclude=node_modules
 
-# Expose port 9000 and start PHP-FPM server
-EXPOSE 9000
-CMD ["php-fpm"]
+# Set document root for Apache
+WORKDIR /var/www/html
 
+# Set the correct permissions and ownership
+RUN chmod -R 755 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache
+
+# Update Apache configuration to enable proper access
+RUN echo "<VirtualHost *:80>\n\
+    DocumentRoot /var/www/html/public\n\
+    <Directory /var/www/html/public>\n\
+        Options Indexes FollowSymLinks\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
+
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache in the foreground
+CMD ["apache2-foreground"]
