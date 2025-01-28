@@ -34,8 +34,8 @@ WORKDIR /var/www/html
 # Copy application files to the container
 COPY . /var/www/html
 
-# Ensure the public directory exists
-RUN mkdir -p /var/www/html/public
+# Debug: List contents of public directory to verify if index.php exists
+RUN ls -al /var/www/html/public
 
 # Install Composer globally
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
