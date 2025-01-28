@@ -1,9 +1,7 @@
 # Stage 1: Build (dependencies)
-FROM composer:latest AS builder
+FROM php:8.2-cli AS builder
 
-WORKDIR /app
-
-# Install necessary PHP extensions for the build stage
+# Install necessary packages and PHP extensions for the build stage
 RUN apt-get update && \
     apt-get install -y \
         libzip-dev \
@@ -20,6 +18,7 @@ RUN apt-get update && \
         gd && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /app
 COPY composer.json composer.lock ./
 
 # Install dependencies without dev dependencies for production
