@@ -14,13 +14,12 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy composer.json and composer.lock
 COPY composer.json composer.lock ./
 
-# Install project dependencies
-RUN composer install --no-interaction
+# Install project dependencies within the container
+RUN composer install
 
 # Copy the entire project, excluding unnecessary files
 COPY . . \
     --from=source \
-    --exclude=vendor \
     --exclude=node_modules
 
 # Set document root for Apache
