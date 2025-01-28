@@ -47,7 +47,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Update Apache configuration to point to the public directory
+# Update Apache configuration to point to the public directory and set ServerName
 RUN echo "<VirtualHost *:80>\n\
     DocumentRoot /var/www/html/public\n\
     <Directory /var/www/html/public>\n\
@@ -56,6 +56,7 @@ RUN echo "<VirtualHost *:80>\n\
     </Directory>\n\
     ErrorLog \${APACHE_LOG_DIR}/error.log\n\
     CustomLog \${APACHE_LOG_DIR}/access.log combined\n\
+    ServerName localhost\n\
 </VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
 # Expose port 80
