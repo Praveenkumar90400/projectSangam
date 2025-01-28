@@ -2,14 +2,39 @@
 FROM composer:latest AS builder
 
 WORKDIR /app
+
+# Install necessary PHP extensions for the build stage
+RUN apt-get update && \
+    apt-get install -y \
+        libzip-dev \
+        unzip \
+        libpng-dev \
+        libonig-dev \
+        libjpeg-dev \
+        libfreetype6-dev \
+        libmcrypt-dev \
+        libicu-dev \
+        curl \
+        git && \
+    docker-php-ext-install \
+        gd && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
 COPY composer.json composer.lock ./
 
-RUN composer install --no-dev --optimize-autoloader
+# Install dependencies without dev dependencies for production
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Stage 2: Runtime (application)
 FROM php:8.2-apache
 
-# Install necessary packages and PHP extensions
+# Copy the vendor directory from the builder stage
+COPY --from=builder /app/vendor /var/www/html/vendor
+
+# Copy the application files to the container
+COPY . /var/www/html
+
+# Install necessary PHP extensions for the runtime stage
 RUN apt-get update && \
     apt-get install -y \
         libzip-dev \
@@ -35,19 +60,6 @@ RUN apt-get update && \
 
 # Enable Apache modules
 RUN a2enmod rewrite headers
-
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy application files to the container
-COPY --from=builder /app/vendor /var/www/html/vendor
-COPY . /var/www/html
-
-# Install Composer globally
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Fix dubious ownership issue for Git
-RUN git config --global --add safe.directory /var/www/html
 
 # Set permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
