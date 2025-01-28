@@ -57,7 +57,9 @@ RUN echo "<VirtualHost *:80>\n\
     ErrorLog \${APACHE_LOG_DIR}/error.log\n\
     CustomLog \${APACHE_LOG_DIR}/access.log combined\n\
     ServerName localhost\n\
-</VirtualHost>" > /etc/apache2/sites-available/000-default.conf
+</VirtualHost>" > /etc/apache2/sites-available/000-default.conf && \
+apache2ctl configtest
+
 
 # Expose port 80
 EXPOSE 80
