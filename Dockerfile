@@ -6,7 +6,6 @@ RUN apt-get update && \
     apt-get install -y \
         libzip-dev \
         unzip \
-        zip \
         libpng-dev \
         libonig-dev \
         libjpeg-dev \
@@ -22,13 +21,14 @@ RUN apt-get update && \
         zip \
         exif \
         pcntl \
-        intl && \
+        intl \
+        gd && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Enable Apache modules
 RUN a2enmod rewrite headers
 
-# Set the working directory
+# Set working directory
 WORKDIR /var/www/html
 
 # Copy application files to the container
@@ -36,6 +36,9 @@ COPY . /var/www/html
 
 # Install Composer globally
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Fix dubious ownership issue for Git
+RUN git config --global --add safe.directory /var/www/html
 
 # Install project dependencies without dev dependencies for production
 RUN composer install --no-dev --optimize-autoloader --no-interaction
