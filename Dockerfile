@@ -11,13 +11,12 @@ RUN apt-get update && \
         unzip \
         curl \
         git && \
-        
- RUN  docker-php-ext-install pdo pdo_mysql       
+    docker-php-ext-install pdo pdo_mysql
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
 # Copy composer files
@@ -31,9 +30,6 @@ RUN mkdir -p /var/www/html/public
 
 # Install project dependencies
 RUN composer install --no-interaction
-
-# Set working directory
-WORKDIR /app
 
 # Set document root for Apache
 WORKDIR /var/www/html
