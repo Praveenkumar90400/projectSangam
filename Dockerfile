@@ -1,39 +1,7 @@
-# Stage 1: Build (dependencies)
-FROM php:8.2-cli AS builder
-
-WORKDIR /app
-
-# Install necessary packages and PHP extensions for the build stage
-RUN apt-get update && \
-    apt-get install -y \
-        libzip-dev \
-        unzip \
-        libpng-dev \
-        libonig-dev \
-        libjpeg-dev \
-        libfreetype6-dev \
-        libmcrypt-dev \
-        libicu-dev \
-        curl \
-        git && \
-    docker-php-ext-install gd && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-COPY composer.json composer.lock ./
-
-# Install dependencies without dev dependencies for production
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-# Stage 2: Runtime (application)
+# Use an official PHP image with Apache
 FROM php:8.2-apache
 
-WORKDIR /var/www/html
-
-# Copy the vendor directory and application files from the builder stage
-COPY --from=builder /app/vendor /var/www/html/vendor
-COPY . /var/www/html
-
-# Install necessary PHP extensions for the runtime stage
+# Install necessary packages and PHP extensions
 RUN apt-get update && \
     apt-get install -y \
         libzip-dev \
@@ -60,9 +28,27 @@ RUN apt-get update && \
 # Enable Apache modules
 RUN a2enmod rewrite headers
 
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy application files to the container
+COPY . /var/www/html
+
+# Ensure the public directory exists
+RUN mkdir -p /var/www/html/public
+
+# Install Composer globally
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Fix dubious ownership issue for Git
+RUN git config --global --add safe.directory /var/www/html
+
+# Install project dependencies without dev dependencies for production
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
 # Set permissions for Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
 
 # Update Apache configuration to point to the public directory and set ServerName
 RUN echo "<VirtualHost *:80>\n\
