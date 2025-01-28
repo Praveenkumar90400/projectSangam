@@ -16,38 +16,39 @@ RUN apt-get update && \
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
 # Copy composer files
 COPY composer.json composer.lock ./
 
-# Copy the rest of the project
-COPY . .
-
-# Ensure public directory exists
-RUN mkdir -p /var/www/html/public
-
 # Install project dependencies
 RUN composer install --no-interaction
+
+# Copy the rest of the project
+COPY . .
 
 # Set document root for Apache
 WORKDIR /var/www/html
 
+# Ensure public directory exists
+RUN mkdir -p /var/www/html/public
+
 # Set the correct permissions and ownership
-RUN chmod -R 755 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache
+RUN chmod -R 755 storage bootstrap/cache && \
+    chown -R www-data:www-data storage bootstrap/cache
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
 # Update Apache configuration to enable proper access
-RUN echo "<VirtualHost *:80>\n\
-    DocumentRoot /var/www/html/public\n\
-    <Directory /var/www/html/public>\n\
-        Options Indexes FollowSymLinks\n\
-        AllowOverride All\n\
-        Require all granted\n\
-    </Directory>\n\
+RUN echo "<VirtualHost *:80>
+    DocumentRoot /var/www/html/public
+    <Directory /var/www/html/public>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
 </VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
 # Expose port 80
