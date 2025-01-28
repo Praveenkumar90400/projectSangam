@@ -1,4 +1,3 @@
-# Use an official PHP image as the base
 FROM php:8.1-apache
 
 # Install necessary packages
@@ -11,16 +10,17 @@ RUN apt-get update && \
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copy composer.json and composer.lock
+# Set working directory
+WORKDIR /app 
+
+# Copy composer files
 COPY composer.json composer.lock ./
 
-# Install project dependencies within the container
+# Install project dependencies
 RUN composer install
 
-# Copy the entire project, excluding unnecessary files
-COPY . . \
-    --from=source \
-    --exclude=node_modules
+# Copy the rest of the project
+COPY . .
 
 # Set document root for Apache
 WORKDIR /var/www/html
