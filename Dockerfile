@@ -32,7 +32,7 @@ RUN a2enmod rewrite headers
 WORKDIR /var/www/html
 
 # Copy application files to the container
-COPY . /var/www/html
+COPY ./public /var/www/html/public
 
 # Install Composer globally
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
