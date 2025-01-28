@@ -1,56 +1,58 @@
-# Use an official PHP image as the base
+# Use an official PHP image with Apache
 FROM php:8.1-apache
 
-# Install required PHP extensions and other dependencies
+# Install necessary packages and PHP extensions
 RUN apt-get update && \
     apt-get install -y \
+        libzip-dev \
+        unzip \
+        zip \
         libpng-dev \
+        libonig-dev \
         libjpeg-dev \
         libfreetype6-dev \
-        zip \
-        unzip \
+        libmcrypt-dev \
+        libicu-dev \
         curl \
         git && \
-        
-# install        
-RUN docker-php-ext-install pdo pdo_mysql
+    docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        mbstring \
+        zip \
+        exif \
+        pcntl \
+        intl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Enable Apache modules
+RUN a2enmod rewrite headers
 
-# Set working directory
-WORKDIR /app
-
-# Copy composer files
-COPY composer.json composer.lock ./
-
-# Install project dependencies
-RUN composer install --no-interaction
-
-# Copy the rest of the project
-COPY . .
-
-# Set document root for Apache
+# Set the working directory
 WORKDIR /var/www/html
 
-# Ensure public directory exists
-RUN mkdir -p /var/www/html/public
+# Copy application files to the container
+COPY . /var/www/html
 
-# Set the correct permissions and ownership
-RUN chmod -R 755 storage bootstrap/cache && \
-    chown -R www-data:www-data storage bootstrap/cache
+# Install Composer globally
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Install project dependencies without dev dependencies for production
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Update Apache configuration to enable proper access
-RUN echo "<VirtualHost *:80>
-    DocumentRoot /var/www/html/public
-    <Directory /var/www/html/public>
-        Options Indexes FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
+# Set permissions for Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Update Apache configuration to point to the public directory
+RUN echo "<VirtualHost *:80>\n\
+    DocumentRoot /var/www/html/public\n\
+    <Directory /var/www/html/public>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+    </Directory>\n\
+    ErrorLog \${APACHE_LOG_DIR}/error.log\n\
+    CustomLog \${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>" > /etc/apache2/sites-available/000-default.conf
 
 # Expose port 80
