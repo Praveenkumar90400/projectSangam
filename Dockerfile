@@ -1,6 +1,8 @@
 # Stage 1: Build (dependencies)
 FROM php:8.2-cli AS builder
 
+WORKDIR /app
+
 # Install necessary packages and PHP extensions for the build stage
 RUN apt-get update && \
     apt-get install -y \
@@ -14,11 +16,9 @@ RUN apt-get update && \
         libicu-dev \
         curl \
         git && \
-    docker-php-ext-install \
-        gd && \
+    docker-php-ext-install gd && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
 COPY composer.json composer.lock ./
 
 # Install dependencies without dev dependencies for production
@@ -27,10 +27,10 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Stage 2: Runtime (application)
 FROM php:8.2-apache
 
-# Copy the vendor directory from the builder stage
-COPY --from=builder /app/vendor /var/www/html/vendor
+WORKDIR /var/www/html
 
-# Copy the application files to the container
+# Copy the vendor directory and application files from the builder stage
+COPY --from=builder /app/vendor /var/www/html/vendor
 COPY . /var/www/html
 
 # Install necessary PHP extensions for the runtime stage
