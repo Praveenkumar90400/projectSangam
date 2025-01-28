@@ -6,25 +6,18 @@ RUN apt-get update && \
         libzip-dev \
         unzip \
         && docker-php-ext-install pdo pdo_mysql zip
-
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Set working directory
-WORKDIR /app 
-
 # Copy composer files
 COPY composer.json composer.lock ./
-
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 # Install project dependencies
-RUN composer install
-
+RUN composer install --no-interaction
+# Set working directory
+WORKDIR /app 
 # Copy the rest of the project
 COPY . .
-
 # Set document root for Apache
 WORKDIR /var/www/html
-
 # Set the correct permissions and ownership
 RUN chmod -R 755 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache
 
