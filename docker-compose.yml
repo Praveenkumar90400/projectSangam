@@ -9,7 +9,7 @@ services:
     volumes:
       - .:/var/www/html
     environment:
-      DB_HOST: kubernetes
+      DB_HOST: 10.96.12.10         # Replace with the actual IP address 
       DB_DATABASE: my_sql
       DB_USERNAME: root
       DB_PASSWORD: root
