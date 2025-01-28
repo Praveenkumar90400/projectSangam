@@ -1,23 +1,31 @@
-FROM php:8.1-apache
+FROM php:8.2-apache
 
-# Install necessary packages
+# Install necessary packages, including gd library
 RUN apt-get update && \
     apt-get install -y \
         libzip-dev \
         unzip \
+        php8.1-gd \
         && docker-php-ext-install pdo pdo_mysql zip
-# Copy composer files
-COPY composer.json composer.lock ./
+
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Copy composer files
+COPY composer.json composer.lock ./
+
 # Install project dependencies
 RUN composer install --no-interaction
+
 # Set working directory
-WORKDIR /app 
+WORKDIR /app
+
 # Copy the rest of the project
 COPY . .
+
 # Set document root for Apache
 WORKDIR /var/www/html
+
 # Set the correct permissions and ownership
 RUN chmod -R 755 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache
 
