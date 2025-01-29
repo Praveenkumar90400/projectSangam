@@ -46,8 +46,10 @@ RUN git config --global --add safe.directory /var/www/html
 # Install project dependencies without dev dependencies for production
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Set permissions for Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public && \
+# Create necessary directories and set permissions
+RUN mkdir -p /var/www/html/storage/logs && \
+    touch /var/www/html/storage/logs/laravel.log && \
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public && \
     chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
 
 # Update Apache configuration to point to the public directory and set ServerName
