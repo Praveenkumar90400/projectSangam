@@ -34,6 +34,9 @@ WORKDIR /var/www/html
 # Copy application files to the container
 COPY . /var/www/html
 
+# Copy the .env file into the container
+COPY .env /var/www/html/.env
+
 # Debug: List contents of public directory to verify if index.php exists
 RUN ls -al /var/www/html/public
 
