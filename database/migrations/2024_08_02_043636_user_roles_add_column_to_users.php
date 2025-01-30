@@ -11,21 +11,21 @@ return new class extends Migration
      *
      * @return void
      */
-    public function up()
-    {
+   public function up()
+{
+    if (!Schema::hasColumn('users', 'role_id')) {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('role_id')->nullable()->after('email')->constrained('roles');
+            $table->bigInteger('role_id')->unsigned()->nullable()->after('email');
             $table->tinyInteger('status')->default(1);
-        
-            // Corrected the phone column by removing the auto_increment and primary key attributes
-            $table->unsignedBigInteger('phone')->nullable();
+            $table->bigInteger('phone')->unsigned()->nullable();
             $table->string('city')->nullable();
             $table->string('state')->nullable();
             $table->integer('pincode')->nullable();
             $table->string('address')->nullable();
         });
-        
     }
+}
+
 
     /**
      * Reverse the migrations.
