@@ -23,6 +23,16 @@ use App\Http\Controllers\Admin\MusicCategoryController;
 */
 
 
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return redirect('/dashboard');
+});
+
+
+
+
+
 Route::middleware('auth')->group(function () { Route::get('/dashboard', function () { return view('dashboard.index'); })->middleware('verified')->name('admin.dashboard');
 });
 
