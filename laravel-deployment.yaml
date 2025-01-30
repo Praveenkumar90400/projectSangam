@@ -1,20 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: laravel-deployment
+  name: sangamdashboard
+  namespace: webapps
 spec:
   selector:
     matchLabels:
-      app: laravel
-  replicas: 1
+      app: sangamdashboard
+  replicas: 3
   template:
     metadata:
       labels:
-        app: laravel
+        app: sangamdashboard
     spec:
       containers:
-      - name: laravel
-        image: your-docker-registry/your-laravel-app
+      - name: sangamdashboard-container
+        image: praveenkumar90400/sangamdashboard:latest
         ports:
         - containerPort: 80
         env:
@@ -43,10 +44,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: laravel
+  name: sangamdashboard
 spec:
   ports:
   - port: 80
   selector:
-    app: laravel
+    app: sangamdashboard
   type: ClusterIP
