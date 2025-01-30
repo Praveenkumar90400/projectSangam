@@ -23,12 +23,7 @@ use App\Http\Controllers\Admin\MusicCategoryController;
 */
 
 
-//changed by praveenkumar
-use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect('/dashboard');
-});
 
 
 
